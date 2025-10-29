@@ -1,0 +1,17 @@
+spring:
+  config:
+    import: optional:file:.env.dev[.properties]
+  datasource:
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL}
+
+  application:
+    name: task-service
+    security:
+      oauth2:
+        resourceserver:
+          jwt:
+            issuer-uri: http://localhost:9000
+server:
+  port: 8081
