@@ -5,18 +5,30 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <changeSet id="create-users-table-001" author="fanat1kq">
-        <createTable schemaName="authorization_service" tableName="users" remarks="Table of users">
+    <changeSet id="create-tasks-table-002" author="fanat1kq">
+        <createTable schemaName="task_service" tableName="tasks" remarks="Table of tasks">
             <column name="id" type="BIGSERIAL" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="username" type="VARCHAR(250)">
-                <constraints nullable="false" unique="true"/>
+            <column name="title" type="VARCHAR(500)">
+                <constraints nullable="false"/>
             </column>
-            <column name="password" type="VARCHAR(250)">
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="user_id" type="bigserial">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)" defaultValue="NEW">
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
+        <createIndex schemaName="task_service" tableName="tasks" indexName="idx_tasks_user_id">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex schemaName="task_service" tableName="tasks" indexName="idx_tasks_status">
+            <column name="status"/>
+        </createIndex>
     </changeSet>
 
 </databaseChangeLog>
