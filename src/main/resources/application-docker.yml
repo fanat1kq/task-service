@@ -22,7 +22,7 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 server:
-  port: ${PORT}
+  port: ${PORT:8081}
 kafka:
   topics:
     email-sending: ${KAFKA_TOPIC_EMAIL_SENDING:email-sending-topic}
