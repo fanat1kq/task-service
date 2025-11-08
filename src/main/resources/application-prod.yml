@@ -1,0 +1,38 @@
+spring:
+  config:
+    import: optional:file:.env.prod[.properties]
+  datasource:
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL}
+  liquibase:
+    change-log: classpath:changelog/db.changelog-master.xml
+    default-schema: ${DEFAULT_SCHEMA}
+    liquibase-schema: ${LIQUIBASE_SCHEMA}
+  application:
+    name: task-service
+    security:
+      oauth2:
+        resourceserver:
+          jwt:
+            issuer-uri: ${ISSUER_URI}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWT_JWK_SET_URI}
+
+server:
+  port: ${PORT:8081}
+kafka:
+  topics:
+    email-sending: ${KAFKA_TOPIC_EMAIL_SENDING:email-sending-topic}
+    user-info: ${KAFKA_TOPIC_USER_INFO:user-info-topic}
+    task-notification: ${KAFKA_TOPIC_TASK_NOTIFICATION:task-notification-topic}
+services:
+  auth-service:
+    url: http://auth-service:9000
