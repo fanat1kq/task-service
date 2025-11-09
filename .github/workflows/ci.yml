@@ -76,5 +76,5 @@ jobs:
             docker rm task-service || true
             docker pull --platform linux/amd64 ${{ env.IMAGE_NAME }}:master
             cd ~/app/task-tracker
-            docker-compose -f docker-compose.prod.yml up task-service -d
+            docker-compose -f docker-compose.prod.yml up -d task-service
             docker rmi $(docker images "${{ env.IMAGE_NAME }}" --filter "before=${{ env.IMAGE_NAME }}:master" -q) || true
