@@ -12,6 +12,6 @@ import java.util.List;
 )
 public interface AuthServiceClient {
 
-          @GetMapping("/users")
+          @GetMapping("/api/auth/users")
           List<UserDto> getAllUsers();
 }

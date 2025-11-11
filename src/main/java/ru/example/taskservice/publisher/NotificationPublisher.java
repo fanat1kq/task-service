@@ -10,6 +10,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import ru.example.taskservice.config.KafkaTopicsProperties;
 import ru.example.taskservice.dto.EmailMessageRequestDto;
+import ru.example.taskservice.dto.Notification;
 import ru.example.taskservice.dto.UserInformationDto;
 
 @Service
@@ -27,12 +28,12 @@ public class NotificationPublisher {
           }
 
           @SneakyThrows
-          public void send(EmailMessageRequestDto dto) {
-                    Message<EmailMessageRequestDto> emailMessage = MessageBuilder
+          public void send(Notification dto) {
+                    Message<Notification> emailMessage = MessageBuilder
                               .withPayload(dto)
                               .setHeader(KafkaHeaders.TOPIC, kafkaTopicsProperties.getTopics().getEmailSending())
                               .build();
-                    log.info("EmailMessageRequestDto: Sending message to consumer = {}", dto);
+                    log.info("Notification: Sending message to consumer = {}", dto);
                     kafkaTemplate.send(emailMessage).get();
           }
 }

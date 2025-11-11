@@ -12,12 +12,11 @@ import java.util.List;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface TaskMapper {
 
-         TaskDto toDto(Task task);
+          TaskDto toDto(Task task);
 
-          @Mapping(target = "description", ignore = true)
-          Task toEntity(TaskDto taskDto);
           @Mapping(target = "description", ignore = true)
           @Mapping(target = "id", ignore = true)
           Task toEntity(TaskRequestDto taskDto);
-        List<TaskDto> toDtoList(List<Task> tasks);
+
+          List<TaskDto> toDtoList(List<Task> tasks);
 }

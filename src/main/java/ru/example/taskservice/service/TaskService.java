@@ -10,7 +10,7 @@ import ru.example.taskservice.dto.TaskRequestDto;
 import ru.example.taskservice.dto.TaskUpdateRequest;
 import ru.example.taskservice.dto.UserInformationDto;
 import ru.example.taskservice.entity.Task;
-import ru.example.taskservice.entity.TaskStatus;
+import ru.example.taskservice.dto.TaskStatus;
 import ru.example.taskservice.mapper.TaskMapper;
 import ru.example.taskservice.publisher.NotificationPublisher;
 import ru.example.taskservice.repository.TaskRepository;
@@ -42,12 +42,6 @@ public class TaskService {
                     taskRepository.deleteById(id);
           }
 
-//          public void updateStatusById(Long taskId, TaskStatus status) {
-//                    Task task = taskRepository.findById(taskId).orElseThrow(
-//                              () -> new RuntimeException("Task not found with id: " + taskId));
-//                    task.setStatus(status);
-//          }
-
           public void updateTask(Long taskId, TaskUpdateRequest updateRequest) {
                     Task task = taskRepository.findById(taskId).orElseThrow(
                               () -> new RuntimeException("Task not found with id: " + taskId));
@@ -57,12 +51,14 @@ public class TaskService {
                     task.setTitle(updateRequest.getTitle());
 
           }
+
           @Transactional(readOnly = true)
           public String getTasksCountByStatusAndUserId(TaskStatus status, Long userId) {
                     return String.valueOf(
                               taskRepository.getTasksByStatusAndUserId(status, userId).size()
                     );
           }
+
           @PostMapping("/task/info")
           public void getAllTasksInfo(Long userId) {
                     var dto = new UserInformationDto(userId);

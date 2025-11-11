@@ -1,7 +1,6 @@
 package ru.example.taskservice.controller;
 
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,9 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.example.taskservice.dto.TaskDto;
 import ru.example.taskservice.dto.TaskRequestDto;
-import ru.example.taskservice.dto.TaskStatusUpdate;
 import ru.example.taskservice.dto.TaskUpdateRequest;
-import ru.example.taskservice.entity.TaskStatus;
 import ru.example.taskservice.service.TaskService;
 
 import java.util.List;
@@ -29,7 +26,6 @@ public class TaskController {
 
           @GetMapping
           public List<TaskDto> getTasks() {
-                    // Gateway уже проверил JWT, можно доверять запросу
                     return taskService.getTasks();
           }
 
