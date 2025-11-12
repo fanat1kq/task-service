@@ -5,14 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.example.taskservice.client.AuthServiceClient;
-import ru.example.taskservice.dto.EmailMessageRequestDto;
 import ru.example.taskservice.dto.Notification;
 import ru.example.taskservice.dto.NotificationType;
 import ru.example.taskservice.dto.RecipientType;
 import ru.example.taskservice.dto.TaskStatus;
 import ru.example.taskservice.dto.TasksData;
 import ru.example.taskservice.dto.UserDto;
-import ru.example.taskservice.publisher.NotificationPublisher;
+import ru.example.taskservice.service.publisher.DataPublisher;
 import ru.example.taskservice.service.TaskService;
 
 import java.util.Map;
@@ -24,7 +23,7 @@ public class ReportService {
 
           private final AuthServiceClient authServiceClient;
 
-          private final NotificationPublisher notificationPublisher;
+          private final DataPublisher dataPublisher;
 
           private final TaskService taskService;
 
@@ -36,7 +35,7 @@ public class ReportService {
           private void sendUserReport(UserDto user) {
                     var tasksData = getTasksData(user.getId());
                     var message = buildEmailMessage(user, tasksData);
-                    notificationPublisher.send(message);
+                    dataPublisher.send(message);
           }
 
           private TasksData getTasksData(Long userId) {

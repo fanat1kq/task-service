@@ -27,11 +27,20 @@ spring:
           jwk-set-uri: ${JWT_JWK_SET_URI}
 server:
   port: ${PORT}
+
 kafka:
   topics:
     email-sending: ${KAFKA_TOPIC_EMAIL_SENDING:email-sending-topic}
     user-info: ${KAFKA_TOPIC_USER_INFO:user-info-topic}
     task-notification: ${KAFKA_TOPIC_TASK_NOTIFICATION:task-notification-topic}
+  retry:
+    max-attempts: 3
+    initial-delay: 5s
+    max-delay: 1m
+    multiplier: 2.0
+    counter-ttl: 1h
+    cache-expire-after-write: 1h    # ← Добавьте эту строку
+    cache-maximum-size: 10000
 services:
   auth-service:
     url: http://localhost:9000

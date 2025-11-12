@@ -3,8 +3,6 @@ package ru.example.taskservice.dto;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Arrays;
-
 @Getter
 @RequiredArgsConstructor
 public enum TaskStatus {
@@ -12,5 +10,5 @@ public enum TaskStatus {
           IN_PROGRESS("IN_PROGRESS"),
           COMPLETED("COMPLETED");
 
-          private final String TaskStatus;
+          private final String taskStatus;
 }

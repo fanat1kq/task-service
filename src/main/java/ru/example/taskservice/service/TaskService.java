@@ -12,7 +12,7 @@ import ru.example.taskservice.dto.UserInformationDto;
 import ru.example.taskservice.entity.Task;
 import ru.example.taskservice.dto.TaskStatus;
 import ru.example.taskservice.mapper.TaskMapper;
-import ru.example.taskservice.publisher.NotificationPublisher;
+import ru.example.taskservice.service.publisher.DataPublisher;
 import ru.example.taskservice.repository.TaskRepository;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class TaskService {
 
           private final TaskMapper taskMapper;
 
-          private final NotificationPublisher notificationPublisher;
+          private final DataPublisher dataPublisher;
 
           @Transactional(readOnly = true)
           public List<TaskDto> getTasks() {
@@ -62,6 +62,6 @@ public class TaskService {
           @PostMapping("/task/info")
           public void getAllTasksInfo(Long userId) {
                     var dto = new UserInformationDto(userId);
-                    notificationPublisher.send(dto);
+                    dataPublisher.sendUserInfo(dto);
           }
 }
