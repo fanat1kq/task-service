@@ -1,5 +1,8 @@
 package ru.example.taskservice.exception;
 
+import lombok.Getter;
+
+@Getter
 public class MessageSendException extends RuntimeException {
           private final Long messageId;
 
@@ -11,9 +14,5 @@ public class MessageSendException extends RuntimeException {
           public MessageSendException(Long messageId, String message, Throwable cause) {
                     super(message, cause);
                     this.messageId = messageId;
-          }
-
-          public Long getMessageId() {
-                    return messageId;
           }
 }
