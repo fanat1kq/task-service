@@ -1,46 +1,71 @@
 package ru.example.taskservice.service.publisher;
 
-import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.example.taskservice.config.properties.RetryProperties;
+import ru.example.taskservice.entity.FailedMessage;
+import ru.example.taskservice.entity.MessageStatus;
+import ru.example.taskservice.repository.FailedMessageRepository;
 
 import java.time.Duration;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RetryService {
 
-          private final Cache<Long, AtomicInteger> retryCounters;
+          private final FailedMessageRepository failedMessageRepository;
+
+          private final FailedMessageService failedMessageService;
+
           private final RetryProperties retryProperties;
 
-          // Существующие методы остаются
-          public boolean shouldRetry(Long id) {
-                    AtomicInteger counter = retryCounters.get(id, k -> new AtomicInteger(0));
-                    int retryCount = counter.incrementAndGet();
-                    return retryCount <= retryProperties.maxAttempts();
+          public <T> boolean shouldRetry(Long id, String topic, T message) {
+                    Optional<FailedMessage> existing = failedMessageRepository.findById(id);
+
+                    if (existing.isEmpty()) {
+                              failedMessageService.saveMessage(id, topic, message);
+                              return true;
+                    }
+
+                    FailedMessage failedMessage = existing.get();
+                    if (failedMessage.getRetryCount() >= retryProperties.maxAttempts()) {
+                              log.warn("Max retries exceeded for message: {}", id);
+                              return false;
+                    }
+
+                    failedMessage.setRetryCount(failedMessage.getRetryCount() + 1);
+                    failedMessage.setLastAttempt(LocalDateTime.now());
+                    failedMessageRepository.save(failedMessage);
+
+                    return true;
           }
 
           public int getCurrentRetryCount(Long id) {
-                    AtomicInteger counter = retryCounters.getIfPresent(id);
-                    return counter != null ? counter.get() : 0;
+                    return failedMessageRepository.findById(id)
+                              .map(FailedMessage::getRetryCount)
+                              .orElse(0);
           }
 
           public void resetRetryCount(Long id) {
-                    retryCounters.invalidate(id);
+                    failedMessageRepository.deleteById(id);
           }
 
           public Duration calculateBackoffDelay(int retryCount) {
-                    long delaySeconds = (long) (retryProperties.initialDelay().getSeconds() *
-                              Math.pow(retryProperties.multiplier(), retryCount - 1));
+                    double delaySeconds = retryProperties.initialDelay().getSeconds() *
+                              Math.pow(retryProperties.multiplier(), (double) retryCount - 1);
                     long maxDelaySeconds = retryProperties.maxDelay().getSeconds();
-                    return Duration.ofSeconds(Math.min(delaySeconds, maxDelaySeconds));
+                    return Duration.ofSeconds((long) Math.min(delaySeconds, maxDelaySeconds));
           }
 
-          public void markAsFailed(Long id) {
-                    retryCounters.invalidate(id);
+          public void markAsPermanentFailure(Long id) {
+                    failedMessageRepository.findById(id).ifPresent(failedMessage -> {
+                              failedMessage.setStatus(MessageStatus.PERMANENT_FAILURE);
+                              failedMessageRepository.save(failedMessage);
+                              log.warn("Marked message {} as permanent failure", id);
+                    });
           }
 }

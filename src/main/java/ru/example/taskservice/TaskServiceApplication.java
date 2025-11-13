@@ -6,12 +6,15 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import ru.example.taskservice.config.properties.RecoveryProperties;
 import ru.example.taskservice.config.properties.RetryProperties;
 import ru.example.taskservice.service.scheduler.ReportService;
 
 @SpringBootApplication
 @EnableAsync
-@EnableConfigurationProperties(RetryProperties.class)
+@EnableScheduling
+@EnableConfigurationProperties({RetryProperties.class, RecoveryProperties.class})
 @EnableFeignClients(basePackages = "ru.example")
 public class TaskServiceApplication {
 

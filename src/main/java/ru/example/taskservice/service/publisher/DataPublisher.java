@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 import ru.example.taskservice.config.properties.KafkaTopicsProperties;
 import ru.example.taskservice.dto.Notification;
 import ru.example.taskservice.dto.UserInformationDto;
+import ru.example.taskservice.exception.MessagePermanentFailureException;
+
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
@@ -14,78 +17,75 @@ import ru.example.taskservice.dto.UserInformationDto;
 public class DataPublisher {
 
           private final PublisherService publisherService;
+
           private final RetryService retryService;
+
           private final ErrorHandlerService errorHandlerService;
+
           private final KafkaTopicsProperties kafkaTopicsProperties;
 
-          // Для UserInformationDto (без изменений)
           public void sendUserInfo(UserInformationDto dto) {
-                    log.info("UserInformationDto: Sending message to consumer = {}", dto);
-                    String topic = kafkaTopicsProperties.getTopics().getUserInfo();
-
-                    publisherService.send(topic, dto)
-                              .whenComplete((result, throwable) -> {
-                                        if (throwable != null) {
-                                                  handleUserInfoFailure(topic, dto, throwable);
-                                        } else {
-                                                  handleUserInfoSuccess(dto, result);
-                                                  retryService.resetRetryCount(dto.id());
-                                        }
-                              });
+                    sendMessage(dto, kafkaTopicsProperties.getTopics().getUserInfo(), dto.id(),
+                              "user");
           }
 
-          // Для Notification с обработкой ошибок
           public void send(Notification dto) {
-                    String topic = kafkaTopicsProperties.getTopics().getEmailSending();
-                    log.info("Notification: Sending message to consumer = {}", dto);
+                    Long messageId = generateNotificationId(dto);
+                    sendMessage(dto, kafkaTopicsProperties.getTopics().getEmailSending(), messageId,
+                              "notification");
+          }
+
+          private <T> void sendMessage(T dto, String topic, Long messageId, String type) {
+                    log.info("{}: Sending message to consumer = {}", type, dto);
+
+                    if (!retryService.shouldRetry(messageId, topic, dto)) {
+                              log.error("Max retries exceeded for {}: {}, sending to DLQ immediately",
+                                        type, messageId);
+                              errorHandlerService.handlePermanentFailure(topic, dto,
+                                        new MessagePermanentFailureException(
+                                                  "Max retries exceeded"));
+                              return;
+                    }
 
                     publisherService.send(topic, dto)
                               .whenComplete((result, throwable) -> {
                                         if (throwable != null) {
-                                                  handleNotificationFailure(topic, dto, throwable);
+                                                  handleSendFailure(topic, dto, throwable,
+                                                            messageId, type);
                                         } else {
-                                                  handleNotificationSuccess(dto, result);
-
-                                                  retryService.resetRetryCount(generateNotificationId(dto));
+                                                  handleSendSuccess(dto, result, messageId, type);
                                         }
                               });
           }
 
-          private void handleUserInfoSuccess(UserInformationDto dto, SendResult<String, Object> result) {
-                    log.info("Successfully sent user event: {} to topic: {}",
-                              dto.id(), result.getRecordMetadata().topic());
+          private <T> void handleSendSuccess(T dto, SendResult<String, Object> result,
+                                             Long messageId, String type) {
+                    log.info("Successfully sent {}: {} to topic: {}", type,
+                              getMessageIdentifier(dto),
+                              result.getRecordMetadata().topic());
+                    retryService.resetRetryCount(messageId);
           }
 
-          private void handleUserInfoFailure(String topic, UserInformationDto dto, Throwable ex) {
-                    log.error("Failed to send user event: {}", dto.id(), ex);
+          private <T> void handleSendFailure(String topic, T dto, Throwable ex, Long messageId,
+                                             String type) {
+                    log.error("Failed to send {}: {}", type, getMessageIdentifier(dto), ex);
 
-                    if (retryService.shouldRetry(dto.id())) {
-                              int retryCount = retryService.getCurrentRetryCount(dto.id());
-                              log.info("Scheduling retry {} for user: {}", retryCount, dto.id());
-                              errorHandlerService.handleSendFailureAsync(dto, ex, retryCount)
-                                        .thenRun(() -> sendUserInfo(dto));
-                    } else {
-                              errorHandlerService.handlePermanentFailure(topic, dto, ex);
-                    }
+                    int retryCount = retryService.getCurrentRetryCount(messageId);
+                    Duration delay = retryService.calculateBackoffDelay(retryCount);
+
+                    log.info("Scheduling retry {} for {}: {} after {} ms",
+                              retryCount, type, messageId, delay.toMillis());
+
+                    scheduleRetry(() -> sendMessage(dto, topic, messageId, type), delay);
           }
 
-          private void handleNotificationSuccess(Notification dto, SendResult<String, Object> result) {
-                    log.info("Successfully sent notification: {} to topic: {}",
-                              dto, result.getRecordMetadata().topic());
+          private <T> Object getMessageIdentifier(T dto) {
+                    if (dto instanceof UserInformationDto userDto) return userDto.id();
+                    return dto.toString();
           }
 
-          private void handleNotificationFailure(String topic, Notification dto, Throwable ex) {
-                    log.error("Failed to send notification: {}", dto, ex);
-
-                    Long id = generateNotificationId(dto);
-                    if (retryService.shouldRetry(id)) {
-                              int retryCount = retryService.getCurrentRetryCount(id);
-                              log.info("Scheduling retry {} for notification: {}", retryCount, id);
-                              errorHandlerService.handleSendFailureAsync(dto, ex, retryCount)
-                                        .thenRun(() -> send(dto));
-                    } else {
-                              errorHandlerService.handlePermanentFailure(topic, dto, ex);
-                    }
+          private void scheduleRetry(Runnable retryTask, Duration delay) {
+                    errorHandlerService.scheduleRetry(retryTask, delay);
           }
 
           private Long generateNotificationId(Notification dto) {
