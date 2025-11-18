@@ -9,11 +9,11 @@ import ru.example.taskservice.dto.TaskDto;
 import ru.example.taskservice.dto.TaskRequestDto;
 import ru.example.taskservice.dto.TaskUpdateRequest;
 import ru.example.taskservice.dto.UserInformationDto;
+import ru.example.taskservice.dto.enumurates.TaskStatus;
 import ru.example.taskservice.entity.Task;
-import ru.example.taskservice.dto.TaskStatus;
 import ru.example.taskservice.mapper.TaskMapper;
-import ru.example.taskservice.service.publisher.DataPublisher;
 import ru.example.taskservice.repository.TaskRepository;
+import ru.example.taskservice.service.publisher.DataPublisher;
 
 import java.util.List;
 
@@ -22,46 +22,45 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TaskService {
 
-          private final TaskRepository taskRepository;
+    private final TaskRepository taskRepository;
 
-          private final TaskMapper taskMapper;
+    private final TaskMapper taskMapper;
 
-          private final DataPublisher dataPublisher;
+    private final DataPublisher dataPublisher;
 
-          @Transactional(readOnly = true)
-          public List<TaskDto> getTasks() {
-                    return taskMapper.toDtoList(taskRepository.findAll());
-          }
+    @Transactional(readOnly = true)
+    public List<TaskDto> getTasks() {
+        return taskMapper.toDtoList(taskRepository.findAll());
+    }
 
-          public void createTask(TaskRequestDto taskDto) {
-                    taskDto.setStatus(TaskStatus.NEW);
-                    taskRepository.save(taskMapper.toEntity(taskDto));
-          }
+    public void createTask(TaskRequestDto taskDto) {
+        taskDto.setStatus(TaskStatus.NEW);
+        taskRepository.save(taskMapper.toEntity(taskDto));
+    }
 
-          public void deleteTask(Long id) {
-                    taskRepository.deleteById(id);
-          }
+    public void deleteTask(Long id) {
+        taskRepository.deleteById(id);
+    }
 
-          public void updateTask(Long taskId, TaskUpdateRequest updateRequest) {
-                    Task task = taskRepository.findById(taskId).orElseThrow(
-                              () -> new RuntimeException("Task not found with id: " + taskId));
+    public void updateTask(Long taskId, TaskUpdateRequest updateRequest) {
+        Task task = taskRepository.findById(taskId).orElseThrow(
+            () -> new RuntimeException("Task not found with id: " + taskId));
 
-                    task.setStatus(updateRequest.getStatus());
-                    task.setDescription(updateRequest.getDescription());
-                    task.setTitle(updateRequest.getTitle());
+        task.setStatus(updateRequest.getStatus());
+        task.setDescription(updateRequest.getDescription());
+        task.setTitle(updateRequest.getTitle());
+    }
 
-          }
+    @Transactional(readOnly = true)
+    public String getTasksCountByStatusAndUserId(TaskStatus status, Long userId) {
+        return String.valueOf(
+            taskRepository.getTasksByStatusAndUserId(status, userId).size()
+        );
+    }
 
-          @Transactional(readOnly = true)
-          public String getTasksCountByStatusAndUserId(TaskStatus status, Long userId) {
-                    return String.valueOf(
-                              taskRepository.getTasksByStatusAndUserId(status, userId).size()
-                    );
-          }
-
-          @PostMapping("/task/info")
-          public void getAllTasksInfo(Long userId) {
-                    var dto = new UserInformationDto(userId);
-                    dataPublisher.sendUserInfo(dto);
-          }
+    @PostMapping("/task/info")
+    public void getAllTasksInfo(Long userId) {
+        var dto = new UserInformationDto(userId);
+        dataPublisher.sendUserInfo(dto);
+    }
 }

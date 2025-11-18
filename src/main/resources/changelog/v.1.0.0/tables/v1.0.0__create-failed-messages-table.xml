@@ -8,7 +8,8 @@
     <changeSet id="001-create-failed-messages-table" author="fanat1kq">
         <comment>Create failed_messages table for storing failed Kafka messages</comment>
 
-        <createTable schemaName="task_service"  tableName="failed_messages" remarks="Table for storing failed Kafka messages with retry mechanism">
+        <createTable schemaName="task_service" tableName="failed_messages"
+                     remarks="Table for storing failed Kafka messages with retry mechanism">
             <column name="id" type="BIGINT">
                 <constraints primaryKey="true" nullable="false" primaryKeyName="pk_failed_messages"/>
             </column>

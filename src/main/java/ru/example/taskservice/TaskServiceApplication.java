@@ -18,12 +18,12 @@ import ru.example.taskservice.service.scheduler.ReportService;
 @EnableFeignClients(basePackages = "ru.example")
 public class TaskServiceApplication {
 
-          public static void main(String[] args) {
+    public static void main(String[] args) {
 
-                    ConfigurableApplicationContext run =
-                              SpringApplication.run(TaskServiceApplication.class, args);
-                    run.getBean(ReportService.class).sendDailyTasksSummaryToAllUsers();
+        ConfigurableApplicationContext run =
+            SpringApplication.run(TaskServiceApplication.class, args);
+        run.getBean(ReportService.class).sendDailyTasksSummaryToAllUsers();
 
-          }
+    }
 
 }

@@ -13,7 +13,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.example.taskservice.dto.TaskStatus;
+import ru.example.taskservice.dto.enumurates.TaskStatus;
 
 @Entity
 @Table(name = "tasks", schema = "task_service")
@@ -24,18 +24,18 @@ import ru.example.taskservice.dto.TaskStatus;
 @Builder
 public class Task {
 
-          @Id
-          @GeneratedValue(strategy = GenerationType.IDENTITY)
-          private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-          @Column(nullable = false)
-          private String title;
+    @Column(nullable = false)
+    private String title;
 
-          private String description;
+    private String description;
 
-          @Column(nullable = false, columnDefinition = "UUID")
-          private Long userId;
+    @Column(nullable = false, columnDefinition = "UUID")
+    private Long userId;
 
-          @Enumerated(EnumType.STRING)
-          private TaskStatus status;
+    @Enumerated(EnumType.STRING)
+    private TaskStatus status;
 }

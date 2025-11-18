@@ -7,11 +7,11 @@ import ru.example.taskservice.dto.UserDto;
 import java.util.List;
 
 @FeignClient(
-          name = "auth-service",
-          url = "${services.auth-service.url}"
+    name = "auth-service",
+    url = "${services.auth-service.url}"
 )
 public interface AuthServiceClient {
 
-          @GetMapping("/api/auth/users")
-          List<UserDto> getAllUsers();
+    @GetMapping("/api/auth/users")
+    List<UserDto> getAllUsers();
 }

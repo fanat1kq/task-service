@@ -1,4 +1,4 @@
-package ru.example.taskservice.dto;
+package ru.example.taskservice.dto.enumurates;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum RecipientType {
 
-          EMAIL("EMAIL");
+    EMAIL("EMAIL");
 
-          private final String recipientName;
+    private final String recipientName;
 }

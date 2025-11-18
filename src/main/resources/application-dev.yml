@@ -22,11 +22,11 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       retries: 3
       properties:
-        retry.backoff.ms: 1000           # Увеличить паузу между ретраями
-        reconnect.backoff.ms: 1000       # Увеличить паузу между переподключениями
-        reconnect.backoff.max.ms: 10000  # Максимальная пауза 10 секунд
-        request.timeout.ms: 30000        # Таймаут запроса 30 секунд
-        metadata.max.age.ms: 30000       # Обновлять метаданные раз в 30 секунд
+        retry.backoff.ms: 1000
+        reconnect.backoff.ms: 1000
+        reconnect.backoff.max.ms: 10000
+        request.timeout.ms: 30000
+        metadata.max.age.ms: 30000
         delivery.timeout.ms: 60000
   security:
     oauth2:
@@ -58,7 +58,7 @@ kafka:
     max-delay: 1m
     multiplier: 2.0
     counter-ttl: 1h
-    cache-expire-after-write: 1h    # ← Добавьте эту строку
+    cache-expire-after-write: 1h
     cache-maximum-size: 10000
 
 services:
@@ -71,3 +71,5 @@ app:
       batch-size: 50
       initial-delay: 30s
       max-recovery-attempts: 3
+  scheduling:
+    daily-tasks-summary-cron: "0 0 22 * * *"

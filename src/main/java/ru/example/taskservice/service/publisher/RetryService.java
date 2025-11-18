@@ -3,69 +3,71 @@ package ru.example.taskservice.service.publisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.example.taskservice.config.properties.RetryProperties;
 import ru.example.taskservice.entity.FailedMessage;
-import ru.example.taskservice.entity.MessageStatus;
+import ru.example.taskservice.entity.enumurates.MessageStatus;
 import ru.example.taskservice.repository.FailedMessageRepository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-@Service
-@RequiredArgsConstructor
+import static ru.example.taskservice.util.Constants.INITIAL_RETRY_COUNT;
+
 @Slf4j
+@Service
+@Transactional
+@RequiredArgsConstructor
 public class RetryService {
 
-          private final FailedMessageRepository failedMessageRepository;
+    private final FailedMessageRepository failedMessageRepository;
 
-          private final FailedMessageService failedMessageService;
+    private final FailedMessageService failedMessageService;
 
-          private final RetryProperties retryProperties;
+    private final RetryProperties retryProperties;
 
-          public <T> boolean shouldRetry(Long id, String topic, T message) {
-                    Optional<FailedMessage> existing = failedMessageRepository.findById(id);
+    public <T> boolean shouldRetry(Long id, String topic, T message) {
+        Optional<FailedMessage> existing = failedMessageRepository.findById(id);
 
-                    if (existing.isEmpty()) {
-                              failedMessageService.saveMessage(id, topic, message);
-                              return true;
-                    }
+        if (existing.isEmpty()) {
+            failedMessageService.saveMessage(id, topic, message);
+            return true;
+        }
 
-                    FailedMessage failedMessage = existing.get();
-                    if (failedMessage.getRetryCount() >= retryProperties.maxAttempts()) {
-                              log.warn("Max retries exceeded for message: {}", id);
-                              return false;
-                    }
+        FailedMessage failedMessage = existing.get();
+        if (failedMessage.getRetryCount() >= retryProperties.maxAttempts()) {
+            log.warn("Max retries exceeded for message: {}", id);
+            return false;
+        }
 
-                    failedMessage.setRetryCount(failedMessage.getRetryCount() + 1);
-                    failedMessage.setLastAttempt(LocalDateTime.now());
-                    failedMessageRepository.save(failedMessage);
+        failedMessage.setRetryCount(failedMessage.getRetryCount() + 1);
+        failedMessage.setLastAttempt(LocalDateTime.now());
+        return true;
+    }
 
-                    return true;
-          }
+    @Transactional(readOnly = true)
+    public int getCurrentRetryCount(Long id) {
+        return failedMessageRepository.findById(id)
+            .map(FailedMessage::getRetryCount)
+            .orElse(INITIAL_RETRY_COUNT);
+    }
 
-          public int getCurrentRetryCount(Long id) {
-                    return failedMessageRepository.findById(id)
-                              .map(FailedMessage::getRetryCount)
-                              .orElse(0);
-          }
+    public void resetRetryCount(Long id) {
+        failedMessageRepository.deleteById(id);
+    }
 
-          public void resetRetryCount(Long id) {
-                    failedMessageRepository.deleteById(id);
-          }
+    public Duration calculateBackoffDelay(int retryCount) {
+        double delaySeconds = retryProperties.initialDelay().getSeconds() *
+            Math.pow(retryProperties.multiplier(), (double) retryCount - 1);
+        long maxDelaySeconds = retryProperties.maxDelay().getSeconds();
+        return Duration.ofSeconds((long) Math.min(delaySeconds, maxDelaySeconds));
+    }
 
-          public Duration calculateBackoffDelay(int retryCount) {
-                    double delaySeconds = retryProperties.initialDelay().getSeconds() *
-                              Math.pow(retryProperties.multiplier(), (double) retryCount - 1);
-                    long maxDelaySeconds = retryProperties.maxDelay().getSeconds();
-                    return Duration.ofSeconds((long) Math.min(delaySeconds, maxDelaySeconds));
-          }
-
-          public void markAsPermanentFailure(Long id) {
-                    failedMessageRepository.findById(id).ifPresent(failedMessage -> {
-                              failedMessage.setStatus(MessageStatus.PERMANENT_FAILURE);
-                              failedMessageRepository.save(failedMessage);
-                              log.warn("Marked message {} as permanent failure", id);
-                    });
-          }
+    public void markAsPermanentFailure(Long id) {
+        failedMessageRepository.findById(id).ifPresent(failedMessage -> {
+            failedMessage.setStatus(MessageStatus.PERMANENT_FAILURE);
+            log.warn("Marked message {} as permanent failure", id);
+        });
+    }
 }

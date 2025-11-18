@@ -15,25 +15,24 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-          @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
-          private String jwkSetUri;
+    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
+    private String jwkSetUri;
 
-          @Bean
-          public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                    http
-                              .csrf(AbstractHttpConfigurer::disable)
-                              .authorizeHttpRequests(authz -> authz
-                                        .anyRequest().authenticated())
-                              .oauth2ResourceServer(oauth2 -> oauth2
-                                        .jwt(Customizer.withDefaults())
-                              );
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(authz -> authz
+                .anyRequest().authenticated())
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(Customizer.withDefaults())
+            );
+        return http.build();
+    }
 
-                    return http.build();
-          }
-
-          @Bean
-          public JwtDecoder jwtDecoder() {
-                    return NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
-                              .build();
-          }
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
+            .build();
+    }
 }

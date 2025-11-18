@@ -8,12 +8,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "kafka")
 public class KafkaTopicsProperties {
-          private Topics topics = new Topics();
 
-          @Data
-          public static class Topics {
-                    private String emailSending;
-                    private String userInfo;
-                    private String taskNotification;
-          }
+    private Topics topics = new Topics();
+
+    @Data
+    public static class Topics {
+        private String emailSending;
+
+        private String userInfo;
+
+        private String taskNotification;
+    }
 }

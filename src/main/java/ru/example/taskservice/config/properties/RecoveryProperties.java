@@ -10,8 +10,12 @@ import java.time.Duration;
 @Getter
 @Setter
 public class RecoveryProperties {
-          private boolean enabled = true;
-          private int batchSize = 50;
-          private Duration initialDelay = Duration.ofSeconds(30);
-          private int maxRecoveryAttempts = 3;
+
+    private boolean enabled;
+
+    private int batchSize;
+
+    private Duration initialDelay;
+
+    private int maxRecoveryAttempts;
 }

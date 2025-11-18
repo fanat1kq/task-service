@@ -10,33 +10,34 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.example.taskservice.entity.enumurates.MessageStatus;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "failed_messages")
+@Table(name = "failed_messages", schema = "task_service")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FailedMessage {
 
-          @Id
-          private Long id;
+    @Id
+    private Long id;
 
-          @Column(nullable = false)
-          private String topic;
+    @Column(nullable = false)
+    private String topic;
 
-          @Column(columnDefinition = "TEXT", nullable = false)
-          private String message;
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String message;
 
-          @Column(nullable = false)
-          private int retryCount = 0;
+    @Column(nullable = false)
+    private int retryCount = 0;
 
-          @Column(nullable = false)
-          @Enumerated(EnumType.STRING)
-          private MessageStatus status = MessageStatus.RETRYING;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private MessageStatus status = MessageStatus.RETRYING;
 
-          @Column(nullable = false)
-          private LocalDateTime lastAttempt = LocalDateTime.now();
+    @Column(nullable = false)
+    private LocalDateTime lastAttempt = LocalDateTime.now();
 }

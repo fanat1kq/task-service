@@ -5,54 +5,54 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.example.taskservice.entity.FailedMessage;
-import ru.example.taskservice.entity.MessageStatus;
+import ru.example.taskservice.entity.enumurates.MessageStatus;
 import ru.example.taskservice.repository.FailedMessageRepository;
 
 import java.time.LocalDateTime;
 
+import static ru.example.taskservice.util.Constants.INITIAL_RETRY_COUNT;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class FailedMessageService {
 
-          private final FailedMessageRepository failedMessageRepository;
+    private final FailedMessageRepository failedMessageRepository;
 
-          private final ObjectMapper objectMapper; // Spring Boot автоматически настраивает
+    private final ObjectMapper objectMapper;
 
-          public <T> void saveMessage(Long id, String topic, T message) {
-                    try {
-                              String jsonMessage = objectMapper.writeValueAsString(message);
+    @Transactional
+    public <T> void saveMessage(Long id, String topic, T message) {
+        try {
+            String jsonMessage = objectMapper.writeValueAsString(message);
+            saveFailedMessage(id, topic, jsonMessage);
 
-                              FailedMessage failedMessage = FailedMessage.builder()
-                                        .id(id)
-                                        .topic(topic)
-                                        .message(jsonMessage)
-                                        .retryCount(0)
-                                        .status(MessageStatus.RETRYING)
-                                        .lastAttempt(LocalDateTime.now())
-                                        .build();
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize message with id: {}", id, e);
+            saveMessageAsString(id, topic, message);
+        }
+    }
 
-                              failedMessageRepository.save(failedMessage);
-                              log.debug("Saved failed message with id: {}", id);
+    private void saveFailedMessage(Long id, String topic, String messageContent) {
+        FailedMessage failedMessage = buildFailedMessage(id, topic, messageContent);
+        failedMessageRepository.save(failedMessage);
+    }
 
-                    } catch (JsonProcessingException e) {
-                              log.error("Failed to serialize message with id: {}", id, e);
-                              // Fallback: сохраняем toString()
-                              saveMessageAsString(id, topic, message);
-                    }
-          }
+    private <T> void saveMessageAsString(Long id, String topic, T message) {
+        String fallbackContent = message.toString();
+        saveFailedMessage(id, topic, fallbackContent);
+    }
 
-          private <T> void saveMessageAsString(Long id, String topic, T message) {
-                    FailedMessage failedMessage = FailedMessage.builder()
-                              .id(id)
-                              .topic(topic)
-                              .message(message.toString())
-                              .retryCount(0)
-                              .status(MessageStatus.RETRYING)
-                              .lastAttempt(LocalDateTime.now())
-                              .build();
-
-                    failedMessageRepository.save(failedMessage);
-          }
+    private FailedMessage buildFailedMessage(Long id, String topic, String messageContent) {
+        return FailedMessage.builder()
+            .id(id)
+            .topic(topic)
+            .message(messageContent)
+            .retryCount(INITIAL_RETRY_COUNT)
+            .status(MessageStatus.RETRYING)
+            .lastAttempt(LocalDateTime.now())
+            .build();
+    }
 }

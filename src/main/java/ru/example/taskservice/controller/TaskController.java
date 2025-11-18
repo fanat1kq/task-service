@@ -22,27 +22,27 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TaskController {
 
-          private final TaskService taskService;
+    private final TaskService taskService;
 
-          @GetMapping
-          public List<TaskDto> getTasks() {
-                    return taskService.getTasks();
-          }
+    @GetMapping
+    public List<TaskDto> getTasks() {
+        return taskService.getTasks();
+    }
 
-          @PostMapping
-          public void createTask(@RequestBody TaskRequestDto taskDto) {
-                    taskService.createTask(taskDto);
-          }
+    @PostMapping
+    public void createTask(@RequestBody TaskRequestDto taskDto) {
+        taskService.createTask(taskDto);
+    }
 
-          @DeleteMapping("/{taskId}")
-          public void deleteTask(@PathVariable Long taskId) {
-                    taskService.deleteTask(taskId);
-          }
+    @DeleteMapping("/{taskId}")
+    public void deleteTask(@PathVariable Long taskId) {
+        taskService.deleteTask(taskId);
+    }
 
-          @PutMapping("/{taskId}")
-          public void updateStatusById(@PathVariable Long taskId, @RequestBody
-          TaskUpdateRequest updateRequest) {
-                    taskService.updateTask(taskId, updateRequest);
-          }
+    @PutMapping("/{taskId}")
+    public void updateStatusById(@PathVariable Long taskId,
+                                 @RequestBody TaskUpdateRequest updateRequest) {
+        taskService.updateTask(taskId, updateRequest);
+    }
 }
 
