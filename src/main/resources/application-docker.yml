@@ -36,3 +36,12 @@ kafka:
 services:
   auth-service:
     url: http://auth-service:9000
+app:
+  message:
+    recovery:
+      enabled: true
+      batch-size: 50
+      initial-delay: 30s
+      max-recovery-attempts: 3
+  scheduling:
+    daily-tasks-summary-cron: "0 0 22 * * *"
