@@ -9,6 +9,8 @@ spring:
     change-log: classpath:changelog/db.changelog-master.xml
     default-schema: ${DEFAULT_SCHEMA}
     liquibase-schema: ${LIQUIBASE_SCHEMA}
+  jpa:
+    open-in-view: false
   application:
     name: task-service
     security:
