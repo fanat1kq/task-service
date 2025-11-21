@@ -40,7 +40,6 @@ public class MessageRecoveryService {
     @Value("${kafka.topics.email-sending}")
     private String emailSendingTopic;
 
-
     @Transactional
     @EventListener(ApplicationReadyEvent.class)
     public void recoverFailedMessagesOnStartup() {
