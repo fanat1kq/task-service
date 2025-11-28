@@ -11,6 +11,7 @@ import ru.example.taskservice.dto.TaskUpdateRequest;
 import ru.example.taskservice.dto.UserInformationDto;
 import ru.example.taskservice.dto.enumurates.TaskStatus;
 import ru.example.taskservice.entity.Task;
+import ru.example.taskservice.exception.TaskNotFoundException;
 import ru.example.taskservice.mapper.TaskMapper;
 import ru.example.taskservice.repository.TaskRepository;
 import ru.example.taskservice.service.publisher.DataPublisher;
@@ -44,7 +45,7 @@ public class TaskService {
 
     public void updateTask(Long taskId, TaskUpdateRequest updateRequest) {
         Task task = taskRepository.findById(taskId).orElseThrow(
-            () -> new RuntimeException("Task not found with id: " + taskId));
+            () -> new TaskNotFoundException(taskId));
 
         task.setStatus(updateRequest.getStatus());
         task.setDescription(updateRequest.getDescription());
