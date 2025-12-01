@@ -13,7 +13,7 @@ import ru.example.taskservice.exception.MessageSerializationException;
 
 @Slf4j
 @RestControllerAdvice
-public class MessageExceptionHandler {
+public class ExceptionAdvice {
 
     @ExceptionHandler(MessagePermanentFailureException.class)
     public ResponseEntity<ErrorResponse> handlePermanentFailure(
